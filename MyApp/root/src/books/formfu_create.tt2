@@ -1,0 +1,7 @@
+[% META title = 'Create/Update Book' %]
+
+[%# Render the HTML::FormFu Form %]
+[% form %]
+
+<p><a href="[% c.uri_for(c.controller.action_for('list')) 
+    %]">Return to book list</a></p>

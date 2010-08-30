@@ -1,0 +1,121 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+    <html xmlns="http://www.w3.org/1999/xhtml"; xml:lang="en" lang="en">
+    <head>
+      <link rel="stylesheet" href="[% c.uri_for('/static/css/flexigrid.css') %]" />
+      <script language="javascript" src="[% c.uri_for('/static/js/jquery.js') %]">
+      </script>
+      <script language="javascript" src="[% c.uri_for('/static/js/flexigrid.js') %]">
+      </script>
+      <script language="javascript" src="[% c.uri_for('/static/js/jquery.form.js') %]">
+      </script>
+
+    </head>
+    <body>
+
+    <div id="book_form" style="display:none"></div>
+
+    <table id="books_grid" style="display:none"></table>
+
+    <style>
+    .flexigrid div.fbutton .add
+    {   
+    background: url([% c.uri_for('/static/images/flexigrid/add.png') %]) no-repeat center left;
+    }
+    .flexigrid div.fbutton .edit
+    {   
+    background: url([% c.uri_for('/static/images/pen-16.gif') %]) no-repeat center left;
+    }
+    .flexigrid div.fbutton .delete
+    {   
+    background: url([% c.uri_for('/static/images/flexigrid/close.png') %]) no-repeat center left;
+    }
+    </style>
+
+    <script type="text/javascript">
+
+      function add_book(button, grid) {
+        var form_div = $('#book_form');
+
+        form_div.load('/ajax/book_form_add', null, function() {
+            $('#book_form form').ajaxForm({
+                url: '/ajax/book_form_add',
+                success: function() {
+                    form_div.hide();
+                    $('#books_grid').flexReload();
+                }
+            });
+            form_div.show();
+        });
+    }
+
+    function edit_book(button, grid) {
+        var id = $('.trSelected td:nth-child(1) div', grid).html();
+        var form_div = $('#book_form');
+        var url = '/ajax/book_form_edit/' + id;                                                                                
+
+        form_div.load(url, null, function() {
+            $('#book_form form').ajaxForm({
+                url: url,
+                success: function() {
+                    form_div.hide();
+                    $('#books_grid').flexReload();
+                }
+            });
+            form_div.show();
+        });
+    }
+
+    function delete_book(button, grid) {
+        var total_count = $('.trSelected', grid).length;
+        var deleted     = 0;
+
+        $.each($('.trSelected', grid), function() {
+            var id = $('td:nth-child(1) div', this).html();
+            $.ajax({
+                url: '/api/book/' + id,
+                type: 'DELETE',
+                data: {},
+                dataType: 'json',
+                success: function() {
+                    deleted++;
+                    if (deleted == total_count) {
+                        $('#books_grid').flexReload();
+                    }
+                }
+            });
+        });
+    }
+
+    
+    $("#books_grid").flexigrid({
+        url: '/api/grid',
+        dataType: 'json',
+        colModel : [
+            {display: 'id', name : 'id', width : 0, sortable : false, hide: true},
+            {display: 'Title', name : 'title', width : 200, sortable : true, align: 'left'},
+            {display: 'Rating', name : 'rating', width : 30, sortable : true, align: 'right'},
+            {display: 'Author(s)', name : 'authors', width : 275, sortable : true, align: 'left'},
+        ],
+        searchitems : [
+            {display: 'Title', name: 'title', isdefault: true},
+            {display: 'Rating', name: 'rating' },
+        ],
+        buttons : [
+            {name: 'Add', bclass: 'add', onpress : add_book},
+            {name: 'Edit', bclass: 'edit', onpress : edit_book},
+            {name: 'Delete', bclass: 'delete', onpress : delete_book},
+            {separator: true}
+        ],
+        sortname: "title",
+        sortorder: "asc",
+        usepager: true,
+        title: 'Books',
+        useRp: true,
+        rp: 10,
+        width: 550,
+        height: 245
+    });
+    </script>
+    </body>
+    </html>
